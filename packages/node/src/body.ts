@@ -2,7 +2,7 @@ import type { StandardBody, StandardHeaders } from '@orpc/server-standard'
 import type { Buffer } from 'node:buffer'
 import type { NodeHttpRequest } from './types'
 import { Readable } from 'node:stream'
-import { contentDisposition, parseContentDisposition } from '@orpc/server-standard'
+import { contentDisposition, parseContentDisposition, parseEmptyableJSON } from '@orpc/server-standard'
 
 export async function toStandardBody(req: NodeHttpRequest): Promise<StandardBody> {
   const method = req.method ?? 'GET'
@@ -23,12 +23,7 @@ export async function toStandardBody(req: NodeHttpRequest): Promise<StandardBody
 
   if (!contentType || contentType.startsWith('application/json')) {
     const text = await _streamToString(req)
-
-    if (!text) {
-      return undefined
-    }
-
-    return JSON.parse(text)
+    return parseEmptyableJSON(text)
   }
 
   if (contentType.startsWith('multipart/form-data')) {

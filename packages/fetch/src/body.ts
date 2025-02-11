@@ -1,5 +1,5 @@
 import type { StandardBody } from '@orpc/server-standard'
-import { contentDisposition, parseContentDisposition } from '@orpc/server-standard'
+import { contentDisposition, parseContentDisposition, parseEmptyableJSON } from '@orpc/server-standard'
 
 export async function toStandardBody(re: Request | Response): Promise<StandardBody> {
   if (!re.body) {
@@ -23,12 +23,7 @@ export async function toStandardBody(re: Request | Response): Promise<StandardBo
 
   if (!contentType || contentType.startsWith('application/json')) {
     const text = await re.text()
-
-    if (!text) {
-      return undefined
-    }
-
-    return JSON.parse(text)
+    return parseEmptyableJSON(text)
   }
 
   if (contentType.startsWith('multipart/form-data')) {
@@ -36,7 +31,8 @@ export async function toStandardBody(re: Request | Response): Promise<StandardBo
   }
 
   if (contentType.startsWith('application/x-www-form-urlencoded')) {
-    return new URLSearchParams(await re.text())
+    const text = await re.text()
+    return new URLSearchParams(text)
   }
 
   if (contentType.startsWith('text/')) {
