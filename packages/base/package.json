@@ -39,5 +39,9 @@
     "build": "tsup --clean --sourcemap --entry.index=src/index.ts --format=esm --onSuccess='tsc -b --noCheck'",
     "build:watch": "pnpm run build --watch",
     "type:check": "tsc -b"
+  },
+  "dependencies": {
+    "@tinyhttp/content-disposition": "^2.2.2",
+    "type-fest": "^4.34.1"
   }
 }

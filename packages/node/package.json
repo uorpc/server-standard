@@ -39,5 +39,13 @@
     "build": "tsup --clean --sourcemap --entry.index=src/index.ts --format=esm --onSuccess='tsc -b --noCheck'",
     "build:watch": "pnpm run build --watch",
     "type:check": "tsc -b"
+  },
+  "dependencies": {
+    "@orpc/server-standard": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.1",
+    "@types/supertest": "^6.0.2",
+    "supertest": "^7.0.0"
   }
 }

@@ -1,3 +1,2 @@
-/** unnoq */
-
-export const author = 'unnoq'
+export * from './types'
+export * from './utils'
