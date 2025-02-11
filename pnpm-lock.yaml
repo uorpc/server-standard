@@ -42,7 +42,11 @@ importers:
         specifier: ^3.0.5
         version: 3.0.5(@types/debug@4.1.12)(@types/node@22.13.1)(jiti@1.21.6)(tsx@4.19.2)(yaml@2.7.0)
 
-  packages/example: {}
+  packages/base: {}
+
+  packages/fetch: {}
+
+  packages/node: {}
 
 packages:
 
