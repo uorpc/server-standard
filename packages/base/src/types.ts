@@ -2,6 +2,13 @@ import type { JsonValue } from 'type-fest'
 
 export { JsonValue }
 
+export interface EventSourceMessage {
+  event: string | undefined
+  id: string | undefined
+  data: string
+  retry: number | undefined
+}
+
 export interface StandardHeaders {
   [key: string]: string | string[] | undefined
 }

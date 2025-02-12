@@ -42,8 +42,6 @@
   },
   "dependencies": {
     "@tinyhttp/content-disposition": "^2.2.2",
-    "eventsource-encoder": "^1.0.0",
-    "eventsource-parser": "^3.0.0",
     "type-fest": "^4.34.1"
   }
 }

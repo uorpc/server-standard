@@ -32,5 +32,3 @@ export function isAsyncIteratorObject(maybe: unknown): maybe is AsyncIteratorObj
 }
 
 export { contentDisposition, parse as parseContentDisposition } from '@tinyhttp/content-disposition'
-export { encode as encodeEventSource } from 'eventsource-encoder'
-export { EventSourceParserStream } from 'eventsource-parser/stream'

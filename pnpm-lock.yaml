@@ -47,12 +47,6 @@ importers:
       '@tinyhttp/content-disposition':
         specifier: ^2.2.2
         version: 2.2.2
-      eventsource-encoder:
-        specifier: ^1.0.0
-        version: 1.0.0
-      eventsource-parser:
-        specifier: ^3.0.0
-        version: 3.0.0
       type-fest:
         specifier: ^4.34.1
         version: 4.34.1
@@ -1400,14 +1394,6 @@ packages:
 
   eventemitter3@5.0.1:
     resolution: {integrity: sha512-GWkBvjiSZK87ELrYOSESUYeVIc9mvLLf/nXalMOS5dYrgZq9o5OVkbZAVM06CVxYsCwH9BDZFPlQTlPA1j4ahA==}
-
-  eventsource-encoder@1.0.0:
-    resolution: {integrity: sha512-5SUEtKDGSCPvwzBSDvWUcmUsCyYPqYkxf83i0SxYCrvL4MEd4f1R/vq/c/C/gvaiAOVCiA6LRltAcc2KOOR3GA==}
-    engines: {node: '>=18.0.0'}
-
-  eventsource-parser@3.0.0:
-    resolution: {integrity: sha512-T1C0XCUimhxVQzW4zFipdx0SficT651NnkR0ZSH3yQwh+mFMdLfgjABVi4YtMTtaL4s168593DaoaRLMqryavA==}
-    engines: {node: '>=18.0.0'}
 
   execa@8.0.1:
     resolution: {integrity: sha512-VyhnebXciFV2DESc+p6B+y0LjSm0krU4OgJN44qFAhBY0TJ+1V61tYD2+wHusZ6F9n5K+vl8k0sTy7PEfV4qpg==}
@@ -3963,10 +3949,6 @@ snapshots:
   esutils@2.0.3: {}
 
   eventemitter3@5.0.1: {}
-
-  eventsource-encoder@1.0.0: {}
-
-  eventsource-parser@3.0.0: {}
 
   execa@8.0.1:
     dependencies:

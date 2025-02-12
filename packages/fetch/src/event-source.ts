@@ -1,12 +1,12 @@
 import type { JsonValue } from '@orpc/server-standard'
-import { encodeEventSource, EventSourceErrorEvent, EventSourceParserStream, parseEmptyableJSON } from '@orpc/server-standard'
+import { encodeEventSource, EventSourceDecoderStream, EventSourceErrorEvent, EventSourceRetryErrorEvent, parseEmptyableJSON } from '@orpc/server-standard'
 
 export function toEventSourceAsyncGenerator(
   stream: ReadableStream<Uint8Array>,
 ): AsyncGenerator<JsonValue | undefined, JsonValue | undefined, undefined> {
   const eventStream = stream
     .pipeThrough(new TextDecoderStream())
-    .pipeThrough(new EventSourceParserStream({ onError: 'terminate' }))
+    .pipeThrough(new EventSourceDecoderStream())
 
   const reader = eventStream.getReader()
 
@@ -19,16 +19,27 @@ export function toEventSourceAsyncGenerator(
           return
         }
 
-        const event = value.event ?? 'message'
+        switch (value.event) {
+          case 'message':
+            yield parseEmptyableJSON(value.data)
+            break
 
-        if (event === 'message') {
-          yield parseEmptyableJSON(value.data)
-        }
-        else if (event === 'error') {
-          throw new EventSourceErrorEvent(parseEmptyableJSON(value.data))
-        }
-        else if (event === 'done') {
-          return parseEmptyableJSON(value.data)
+          case 'error':
+            if (typeof value.retry === 'number') {
+              throw new EventSourceRetryErrorEvent(value.retry, {
+                data: parseEmptyableJSON(value.data),
+              })
+            }
+
+            throw new EventSourceErrorEvent({
+              data: parseEmptyableJSON(value.data),
+            })
+
+          case 'done':
+            return parseEmptyableJSON(value.data)
+
+          default:
+            throw new Error(`Unknown event: ${value.event}`)
         }
       }
     }
@@ -51,7 +62,7 @@ export function toEventSourceReadableStream(
         if (value.done) {
           controller.enqueue(encodeEventSource({
             event: 'done',
-            data: JSON.stringify(value.value) ?? '', // JSON.stringify still can return undefined
+            data: JSON.stringify(value.value),
           }))
           controller.close()
           return
@@ -59,10 +70,21 @@ export function toEventSourceReadableStream(
 
         controller.enqueue(encodeEventSource({
           event: 'message',
-          data: JSON.stringify(value.value) ?? '', // JSON.stringify still can return undefined
+          data: JSON.stringify(value.value),
         }))
       }
       catch (err) {
+        if (err instanceof EventSourceRetryErrorEvent) {
+          controller.enqueue(encodeEventSource({
+            event: 'error',
+            data: JSON.stringify(err.data),
+            retry: err.milliseconds,
+          }))
+          controller.close()
+
+          return
+        }
+
         if (!(err instanceof EventSourceErrorEvent)) {
           controller.error(err)
           return
@@ -70,7 +92,7 @@ export function toEventSourceReadableStream(
 
         controller.enqueue(encodeEventSource({
           event: 'error',
-          data: JSON.stringify(err.data) ?? '', // JSON.stringify still can return undefined
+          data: JSON.stringify(err.data),
         }))
         controller.close()
       }
