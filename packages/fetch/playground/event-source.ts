@@ -1,9 +1,23 @@
-/// <reference types="bun" />
-
+import { isAsyncIteratorObject } from '@orpc/server-standard'
+import { toStandardRequest } from '../src/request'
 import { toFetchResponse } from '../src/response'
 
 Bun.serve({
-  fetch(request, server) {
+  async fetch(request, server) {
+    const body = await toStandardRequest(request).body()
+
+    if (isAsyncIteratorObject(body)) {
+      while (true) {
+        const value = await body.next()
+
+        console.log(value)
+
+        if (value.done) {
+          break
+        }
+      }
+    }
+
     async function* gen() {
       try {
         while (true) {

@@ -1,7 +1,23 @@
 import { createServer } from 'node:http'
+import { isAsyncIteratorObject } from '@orpc/server-standard'
+import { toStandardRequest } from '../src/request'
 import { sendStandardResponse } from '../src/response'
 
 const server = createServer(async (req, res) => {
+  const body = await toStandardRequest(req, res).body()
+
+  if (isAsyncIteratorObject(body)) {
+    while (true) {
+      const value = await body.next()
+
+      console.log(value)
+
+      if (value.done) {
+        break
+      }
+    }
+  }
+
   async function* gen() {
     try {
       while (true) {

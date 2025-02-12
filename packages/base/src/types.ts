@@ -1,14 +1,5 @@
 import type { JsonValue } from 'type-fest'
 
-declare global {
-  interface Headers { }
-  interface Blob { }
-  interface URLSearchParams { }
-  interface FormData { }
-  interface AbortSignal { }
-  interface URL { }
-}
-
 export { JsonValue }
 
 export interface StandardHeaders {
