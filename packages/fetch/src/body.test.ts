@@ -1,3 +1,4 @@
+import { isAsyncIteratorObject } from '@orpc/server-standard'
 import { toFetchBody, toStandardBody } from './body'
 
 describe('toStandardBody', () => {
@@ -32,6 +33,31 @@ describe('toStandardBody', () => {
     })
 
     expect(await toStandardBody(request)).toEqual(undefined)
+  })
+
+  it('event-source', async () => {
+    const stream = new ReadableStream<string>({
+      async pull(controller) {
+        controller.enqueue('event: message\ndata: 123\n\n')
+        controller.enqueue('event: done\ndata: 456\n\n')
+        controller.close()
+      },
+    }).pipeThrough(new TextEncoderStream())
+
+    const request = new Request('https://example.com', {
+      method: 'POST',
+      body: stream,
+      headers: {
+        'content-type': 'text/event-stream',
+      },
+      duplex: 'half',
+    })
+
+    const standardBody = await toStandardBody(request) as any
+    expect(standardBody).toSatisfy(isAsyncIteratorObject)
+
+    expect(await standardBody.next()).toEqual({ done: false, value: 123 })
+    expect(await standardBody.next()).toEqual({ done: true, value: 456 })
   })
 
   it('text', async () => {
@@ -184,5 +210,28 @@ describe('toFetchBody', () => {
       ['content-type', 'application/pdf'],
       ['x-custom-header', 'custom-value'],
     ])
+  })
+
+  it('async generator', async () => {
+    async function* gen() {
+      yield 123
+      return 456
+    }
+
+    const headers = new Headers(baseHeaders)
+    const body = toFetchBody(gen(), headers)
+
+    expect(body).toBeInstanceOf(ReadableStream)
+    expect([...headers]).toEqual([
+      ['cache-control', 'no-cache'],
+      ['connection', 'keep-alive'],
+      ['content-type', 'text/event-stream'],
+      ['x-custom-header', 'custom-value'],
+    ])
+
+    const reader = (body as ReadableStream).pipeThrough(new TextDecoderStream()).getReader()
+
+    expect(await reader.read()).toEqual({ done: false, value: 'event: message\ndata: 123\n\n' })
+    expect(await reader.read()).toEqual({ done: false, value: 'event: done\ndata: 456\n\n' })
   })
 })

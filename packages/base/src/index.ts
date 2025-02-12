@@ -1,2 +1,5 @@
+export * from './error'
+export * from './event-source-decoder'
+export * from './event-source-encoder'
 export * from './types'
 export * from './utils'

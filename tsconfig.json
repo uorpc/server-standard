@@ -21,5 +21,8 @@
     "*/*/scripts",
     "*/*/tests",
     "*/*/*"
+  ],
+  "exclude": [
+    "packages/fetch/playground/**/*"
   ]
 }

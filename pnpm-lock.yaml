@@ -56,6 +56,10 @@ importers:
       '@orpc/server-standard':
         specifier: workspace:*
         version: link:../base
+    devDependencies:
+      '@types/bun':
+        specifier: ^1.2.2
+        version: 1.2.2
 
   packages/node:
     dependencies:
@@ -698,6 +702,9 @@ packages:
     resolution: {integrity: sha512-crXw1txzrS36huQOyQGYFvhTeLeG0Si1xu+/l6kXUVYpE0TjFjEZRqTbuadQLfKGZ0jaI+jJoRyqaWwxOSHW2g==}
     engines: {node: '>=12.20.0'}
 
+  '@types/bun@1.2.2':
+    resolution: {integrity: sha512-tr74gdku+AEDN5ergNiBnplr7hpDp3V1h7fqI2GcR/rsUaM39jpSeKH0TFibRvU0KwniRx5POgaYnaXbk0hU+w==}
+
   '@types/cookiejar@2.1.5':
     resolution: {integrity: sha512-he+DHOWReW0nghN24E1WUqM0efK4kI9oTqDm6XmK8ZPe2djZ90BSNdGnIyCLzCPw7/pogPlGbzI2wHGGmi4O/Q==}
 
@@ -739,6 +746,9 @@ packages:
 
   '@types/unist@3.0.3':
     resolution: {integrity: sha512-ko/gIFJRv177XgZsZcBwnqJN5x/Gien8qNOn0D5bQU/zAzVf9Zt3BlcUiLqhV9y4ARk0GbT3tnUiPNgnTXzc/Q==}
+
+  '@types/ws@8.5.14':
+    resolution: {integrity: sha512-bd/YFLW+URhBzMXurx7lWByOu+xzU9+kb3RboOteXYDfW+tr+JZa99OyNmPINEGB/ahzKrEuc8rcv4gnpJmxTw==}
 
   '@typescript-eslint/eslint-plugin@8.24.0':
     resolution: {integrity: sha512-aFcXEJJCI4gUdXgoo/j9udUYIHgF23MFkg09LFz2dzEmU0+1Plk4rQWv/IYKvPHAtlkkGoB3m5e6oUp+JPsNaQ==}
@@ -930,6 +940,9 @@ packages:
   builtin-modules@3.3.0:
     resolution: {integrity: sha512-zhaCDicdLuWN5UbN5IMnFqNMhNfo919sH85y2/ea+5Yg9TsTkeZxpL+JLbp6cgYFS4sRLp3YV4S6yDuqVWHYOw==}
     engines: {node: '>=6'}
+
+  bun-types@1.2.2:
+    resolution: {integrity: sha512-RCbMH5elr9gjgDGDhkTTugA21XtJAy/9jkKe/G3WR2q17VPGhcquf9Sir6uay9iW+7P/BV0CAHA1XlHXMAVKHg==}
 
   bundle-require@5.1.0:
     resolution: {integrity: sha512-3WrrOuZiyaaZPWiEt4G3+IffISVC9HYlWueJEBWED4ZH4aIAC2PnkdnuRrR94M+w6yGWn4AglWtJtBI8YqvgoA==}
@@ -3087,6 +3100,10 @@ snapshots:
 
   '@tinyhttp/content-disposition@2.2.2': {}
 
+  '@types/bun@1.2.2':
+    dependencies:
+      bun-types: 1.2.2
+
   '@types/cookiejar@2.1.5': {}
 
   '@types/debug@4.1.12':
@@ -3131,6 +3148,10 @@ snapshots:
       '@types/superagent': 8.1.9
 
   '@types/unist@3.0.3': {}
+
+  '@types/ws@8.5.14':
+    dependencies:
+      '@types/node': 22.13.1
 
   '@typescript-eslint/eslint-plugin@8.24.0(@typescript-eslint/parser@8.24.0(eslint@9.20.0(jiti@1.21.6))(typescript@5.7.3))(eslint@9.20.0(jiti@1.21.6))(typescript@5.7.3)':
     dependencies:
@@ -3371,6 +3392,11 @@ snapshots:
       update-browserslist-db: 1.1.2(browserslist@4.24.4)
 
   builtin-modules@3.3.0: {}
+
+  bun-types@1.2.2:
+    dependencies:
+      '@types/node': 22.13.1
+      '@types/ws': 8.5.14
 
   bundle-require@5.1.0(esbuild@0.24.2):
     dependencies:

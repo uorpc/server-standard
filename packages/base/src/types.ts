@@ -1,15 +1,13 @@
 import type { JsonValue } from 'type-fest'
 
-declare global {
-  interface Headers { }
-  interface Blob { }
-  interface URLSearchParams { }
-  interface FormData { }
-  interface AbortSignal { }
-  interface URL { }
-}
-
 export { JsonValue }
+
+export interface EventSourceMessage {
+  event: string | undefined
+  id: string | undefined
+  data: string
+  retry: number | undefined
+}
 
 export interface StandardHeaders {
   [key: string]: string | string[] | undefined
@@ -21,7 +19,7 @@ export type StandardBody =
   | Blob
   | URLSearchParams
   | FormData
-  | AsyncIterator<JsonValue | undefined, JsonValue | undefined, undefined>
+  | AsyncIterator<JsonValue | void, JsonValue | void, undefined>
 
 export interface StandardRequest {
   /**

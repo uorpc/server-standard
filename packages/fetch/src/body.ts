@@ -1,5 +1,6 @@
 import type { StandardBody } from '@orpc/server-standard'
-import { contentDisposition, parseContentDisposition, parseEmptyableJSON } from '@orpc/server-standard'
+import { contentDisposition, isAsyncIteratorObject, parseContentDisposition, parseEmptyableJSON } from '@orpc/server-standard'
+import { toEventSourceAsyncGenerator, toEventSourceReadableStream } from './event-source'
 
 export async function toStandardBody(re: Request | Response): Promise<StandardBody> {
   if (!re.body) {
@@ -35,6 +36,10 @@ export async function toStandardBody(re: Request | Response): Promise<StandardBo
     return new URLSearchParams(text)
   }
 
+  if (contentType.startsWith('text/event-stream')) {
+    return toEventSourceAsyncGenerator(re.body)
+  }
+
   if (contentType.startsWith('text/')) {
     return await re.text()
   }
@@ -49,7 +54,10 @@ export async function toStandardBody(re: Request | Response): Promise<StandardBo
  * @param body
  * @param headers - The headers can be changed by the function and effects on the original headers.
  */
-export function toFetchBody(body: StandardBody, headers: Headers): string | Blob | FormData | URLSearchParams | undefined {
+export function toFetchBody(
+  body: StandardBody,
+  headers: Headers,
+): string | Blob | FormData | URLSearchParams | undefined | ReadableStream<Uint8Array> {
   headers.delete('content-type')
   headers.delete('content-disposition')
 
@@ -74,6 +82,14 @@ export function toFetchBody(body: StandardBody, headers: Headers): string | Blob
 
   if (body instanceof URLSearchParams) {
     return body
+  }
+
+  if (isAsyncIteratorObject(body)) {
+    headers.set('content-type', 'text/event-stream')
+    headers.set('cache-control', 'no-cache')
+    headers.set('connection', 'keep-alive')
+
+    return toEventSourceReadableStream(body)
   }
 
   headers.set('content-type', 'application/json')

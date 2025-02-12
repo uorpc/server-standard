@@ -1,4 +1,4 @@
-import { once, parseEmptyableJSON } from './utils'
+import { isAsyncIteratorObject, once, parseEmptyableJSON } from './utils'
 
 it('once', () => {
   const fn = vi.fn(() => ({}))
@@ -17,4 +17,19 @@ it('parseEmptyableJSON', () => {
   expect(parseEmptyableJSON('')).toBeUndefined()
   expect(parseEmptyableJSON('{}')).toEqual({})
   expect(parseEmptyableJSON('{"foo":"bar"}')).toEqual({ foo: 'bar' })
+})
+
+it('isAsyncIteratorObject', () => {
+  expect(isAsyncIteratorObject(null)).toBe(false)
+  expect(isAsyncIteratorObject({})).toBe(false)
+  expect(isAsyncIteratorObject(() => {})).toBe(false)
+  expect(isAsyncIteratorObject({ [Symbol.asyncIterator]: 123 })).toBe(false)
+
+  expect(isAsyncIteratorObject({ [Symbol.asyncIterator]: () => { } })).toBe(true)
+
+  async function* gen() { }
+  expect(isAsyncIteratorObject(gen())).toBe(true)
+
+  function* gen2() { }
+  expect(isAsyncIteratorObject(gen2())).toBe(false)
 })

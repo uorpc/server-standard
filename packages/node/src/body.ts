@@ -2,7 +2,8 @@ import type { StandardBody, StandardHeaders } from '@orpc/server-standard'
 import type { Buffer } from 'node:buffer'
 import type { NodeHttpRequest } from './types'
 import { Readable } from 'node:stream'
-import { contentDisposition, parseContentDisposition, parseEmptyableJSON } from '@orpc/server-standard'
+import { contentDisposition, isAsyncIteratorObject, parseContentDisposition, parseEmptyableJSON } from '@orpc/server-standard'
+import { toEventSourceAsyncGenerator, toEventSourceReadableStream } from './event-source'
 
 export async function toStandardBody(req: NodeHttpRequest): Promise<StandardBody> {
   const method = req.method ?? 'GET'
@@ -33,6 +34,10 @@ export async function toStandardBody(req: NodeHttpRequest): Promise<StandardBody
   if (contentType.startsWith('application/x-www-form-urlencoded')) {
     const text = await _streamToString(req)
     return new URLSearchParams(text)
+  }
+
+  if (contentType.startsWith('text/event-stream')) {
+    return toEventSourceAsyncGenerator(req)
   }
 
   if (contentType.startsWith('text/')) {
@@ -76,6 +81,14 @@ export function toNodeHttpBody(body: StandardBody, headers: StandardHeaders): Re
     headers['content-type'] = 'application/x-www-form-urlencoded'
 
     return body.toString()
+  }
+
+  if (isAsyncIteratorObject(body)) {
+    headers['content-type'] = 'text/event-stream'
+    headers['cache-control'] = 'no-cache'
+    headers.connection = 'keep-alive'
+
+    return toEventSourceReadableStream(body)
   }
 
   headers['content-type'] = 'application/json'
