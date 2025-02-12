@@ -64,13 +64,16 @@ export class EventSourceDecoder {
   feed(chunk: string): void {
     this.incomplete += chunk
 
-    if (!this.incomplete.endsWith('\n\n')) {
+    const lastCompleteIndex = this.incomplete.lastIndexOf('\n\n')
+
+    if (lastCompleteIndex === -1) {
       return
     }
 
-    const encodedMessages = this.incomplete.split(/\n{2,}/)
+    const completes = this.incomplete.slice(0, lastCompleteIndex + 2).split(/\n{2,}/)
+    this.incomplete = this.incomplete.slice(lastCompleteIndex + 2)
 
-    for (const encoded of encodedMessages) {
+    for (const encoded of completes) {
       if (!encoded) {
         continue
       }
