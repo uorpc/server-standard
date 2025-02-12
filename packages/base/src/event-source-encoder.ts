@@ -3,7 +3,7 @@ import type { EventSourceMessage } from './types'
 export class EventSourceEncoderError extends TypeError { }
 
 export function encodeEventSourceData(data: string | undefined): string {
-  const lines = data ? data.split(/\n/) : ''
+  const lines = data ? data.split(/\n/) : ['']
 
   let output = ''
 
@@ -26,8 +26,8 @@ export function encodeEventSource(message: Partial<EventSourceMessage>): string 
   }
 
   if (message.retry !== undefined) {
-    if (!Number.isFinite(message.retry)) {
-      throw new EventSourceEncoderError('EventSourceMessage.retry must be a finite number')
+    if (!Number.isInteger(message.retry) || message.retry < 0) {
+      throw new EventSourceEncoderError('EventSourceMessage.retry must be a integer and >= 0')
     }
 
     output += `retry: ${message.retry}\n`

@@ -17,6 +17,10 @@ export class EventSourceErrorEvent extends Error {
 
 export class EventSourceRetryErrorEvent extends EventSourceErrorEvent {
   constructor(public milliseconds: number, options?: EventSourceErrorEventOptions) {
+    if (!Number.isInteger(milliseconds) || milliseconds < 0) {
+      throw new TypeError('EventSourceRetryErrorEvent.milliseconds must be a integer and >= 0')
+    }
+
     super({
       message: `An SSE retry event was received after ${milliseconds} milliseconds`,
       ...options,

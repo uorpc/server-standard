@@ -15,20 +15,16 @@ export function decodeEventSource(encoded: string): EventSourceMessage {
   for (const line of lines) {
     const [key, value] = line.split(': ')
 
-    if (!key || !value) {
+    if (key === undefined || value === undefined) {
       throw new EventSourceDecoderError(`Invalid EventSource message line: ${line}`)
     }
 
-    if (!(key in message)) {
-      throw new EventSourceDecoderError(`Unknown EventSource message key: ${key}`)
-    }
-
-    if (key !== 'data' && message[key as keyof EventSourceMessage] !== undefined) {
+    if (key !== 'data' && key in message && message[key as keyof EventSourceMessage] !== undefined) {
       throw new EventSourceDecoderError(`Duplicate EventSource message key: ${key}`)
     }
 
     if (key === 'data') {
-      message.data += value
+      message.data += `${value}\n`
     }
     else if (key === 'event') {
       message.event = value
@@ -37,13 +33,13 @@ export function decodeEventSource(encoded: string): EventSourceMessage {
       message.id = value
     }
     else if (key === 'retry') {
-      const maybeNumber = Number.parseInt(value)
+      const maybeInteger = Number.parseInt(value)
 
-      if (!Number.isFinite(maybeNumber)) {
+      if (!Number.isInteger(maybeInteger) || maybeInteger < 0 || maybeInteger.toString() !== value) {
         throw new EventSourceDecoderError(`Invalid EventSource message retry value: ${value}`)
       }
 
-      message.retry = maybeNumber
+      message.retry = maybeInteger
     }
     else {
       throw new EventSourceDecoderError(`Unknown EventSource message key: ${key}`)
@@ -55,7 +51,7 @@ export function decodeEventSource(encoded: string): EventSourceMessage {
   return message
 }
 
-export class EventSourceDecoderOptions {
+export interface EventSourceDecoderOptions {
   onEvent?: (event: EventSourceMessage) => void
 }
 
