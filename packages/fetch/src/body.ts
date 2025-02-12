@@ -88,7 +88,6 @@ export function toFetchBody(
     headers.set('content-type', 'text/event-stream')
     headers.set('cache-control', 'no-cache')
     headers.set('connection', 'keep-alive')
-    headers.set('transfer-encoding', 'chunked')
 
     return toEventSourceReadableStream(body)
   }

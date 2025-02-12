@@ -1,5 +1,5 @@
 import type { JsonValue } from '@orpc/server-standard'
-import { encodeEventSource, EventSourceDecoderStream, EventSourceErrorEvent, EventSourceRetryErrorEvent, parseEmptyableJSON } from '@orpc/server-standard'
+import { encodeEventSource, EventSourceDecoderStream, EventSourceErrorEvent, EventSourceRetryErrorEvent, EventSourceUnknownEvent, parseEmptyableJSON } from '@orpc/server-standard'
 
 export function toEventSourceAsyncGenerator(
   stream: ReadableStream<Uint8Array>,
@@ -39,7 +39,7 @@ export function toEventSourceAsyncGenerator(
             return parseEmptyableJSON(value.data)
 
           default:
-            throw new Error(`Unknown event: ${value.event}`)
+            throw new EventSourceUnknownEvent(`Unknown event: ${value.event}`)
         }
       }
     }
@@ -52,7 +52,7 @@ export function toEventSourceAsyncGenerator(
 }
 
 export function toEventSourceReadableStream(
-  iterator: AsyncIterator<JsonValue | undefined, JsonValue | undefined, undefined>,
+  iterator: AsyncIterator<JsonValue | void, JsonValue | void, void>,
 ): ReadableStream<Uint8Array> {
   const stream = new ReadableStream<string>({
     async pull(controller) {
@@ -74,26 +74,12 @@ export function toEventSourceReadableStream(
         }))
       }
       catch (err) {
-        if (err instanceof EventSourceRetryErrorEvent) {
-          controller.enqueue(encodeEventSource({
-            event: 'error',
-            data: JSON.stringify(err.data),
-            retry: err.milliseconds,
-          }))
-          controller.close()
-
-          return
-        }
-
-        if (!(err instanceof EventSourceErrorEvent)) {
-          controller.error(err)
-          return
-        }
-
         controller.enqueue(encodeEventSource({
           event: 'error',
-          data: JSON.stringify(err.data),
+          data: err instanceof EventSourceErrorEvent ? JSON.stringify(err.data) : undefined,
+          retry: err instanceof EventSourceRetryErrorEvent ? err.retry : undefined,
         }))
+
         controller.close()
       }
     },

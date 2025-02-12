@@ -1,3 +1,4 @@
+import { isAsyncIteratorObject } from '@orpc/server-standard'
 import * as Body from './body'
 import * as Headers from './headers'
 import { toStandardRequest } from './request'
@@ -64,5 +65,30 @@ describe('toStandardRequest', () => {
 
     expect(toStandardBodySpy).toBeCalledTimes(0)
     expect(toStandardHeadersSpy).toBeCalledTimes(0)
+  })
+
+  it('with event-source', async () => {
+    const stream = new ReadableStream({
+      start(controller) {
+        controller.enqueue('event: message\ndata: "foo"\n\n')
+        controller.enqueue('event: done\ndata: "bar"\n\n')
+        controller.close()
+      },
+    }).pipeThrough(new TextEncoderStream())
+
+    const request = new Request('https://example.com', {
+      method: 'POST',
+      body: stream,
+      headers: {
+        'content-type': 'text/event-stream',
+      },
+      duplex: 'half',
+    })
+
+    const body = await toStandardRequest(request).body() as AsyncGenerator
+
+    expect(body).toSatisfy(isAsyncIteratorObject)
+    expect(await body.next()).toEqual({ done: false, value: 'foo' })
+    expect(await body.next()).toEqual({ done: true, value: 'bar' })
   })
 })

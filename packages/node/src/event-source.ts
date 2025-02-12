@@ -1,6 +1,6 @@
 import type { JsonValue } from '@orpc/server-standard'
 import { Readable } from 'node:stream'
-import { encodeEventSource, EventSourceDecoderStream, EventSourceErrorEvent, EventSourceRetryErrorEvent, parseEmptyableJSON } from '@orpc/server-standard'
+import { encodeEventSource, EventSourceDecoderStream, EventSourceErrorEvent, EventSourceRetryErrorEvent, EventSourceUnknownEvent, parseEmptyableJSON } from '@orpc/server-standard'
 
 export function toEventSourceAsyncGenerator(
   stream: Readable,
@@ -40,7 +40,7 @@ export function toEventSourceAsyncGenerator(
             return parseEmptyableJSON(value.data)
 
           default:
-            throw new Error(`Unknown event: ${value.event}`)
+            throw new EventSourceUnknownEvent(`Unknown event: ${value.event}`)
         }
       }
     }

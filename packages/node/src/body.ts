@@ -87,7 +87,6 @@ export function toNodeHttpBody(body: StandardBody, headers: StandardHeaders): Re
     headers['content-type'] = 'text/event-stream'
     headers['cache-control'] = 'no-cache'
     headers.connection = 'keep-alive'
-    headers['transfer-encoding'] = 'chunked'
 
     return toEventSourceReadableStream(body)
   }
