@@ -23,6 +23,12 @@ export function sendStandardResponse(
       res.end(resBody)
     }
     else {
+      res.on('close', () => {
+        if (!resBody.closed) {
+          resBody.destroy(res.errored ?? undefined)
+        }
+      })
+
       resBody.pipe(res)
     }
   })

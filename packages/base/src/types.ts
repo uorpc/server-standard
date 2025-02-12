@@ -21,7 +21,7 @@ export type StandardBody =
   | Blob
   | URLSearchParams
   | FormData
-  | AsyncIterator<JsonValue | undefined, JsonValue | undefined, undefined>
+  | AsyncIterator<JsonValue | void, JsonValue | void, undefined>
 
 export interface StandardRequest {
   /**

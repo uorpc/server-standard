@@ -1,4 +1,5 @@
 export * from './body'
+export * from './event-source'
 export * from './headers'
 export * from './request'
 export * from './response'

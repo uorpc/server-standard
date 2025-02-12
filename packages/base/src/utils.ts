@@ -16,11 +16,21 @@ export function once<T extends () => any>(fn: T): () => ReturnType<T> {
 }
 
 export function parseEmptyableJSON(text: string): JsonValue | undefined {
-  if (text === '') {
+  if (!text) {
     return undefined
   }
 
   return JSON.parse(text)
 }
 
+export function isAsyncIteratorObject(maybe: unknown): maybe is AsyncIteratorObject<any, any, any> {
+  if (!maybe || typeof maybe !== 'object') {
+    return false
+  }
+
+  return Symbol.asyncIterator in maybe && typeof maybe[Symbol.asyncIterator] === 'function'
+}
+
 export { contentDisposition, parse as parseContentDisposition } from '@tinyhttp/content-disposition'
+export { encode as encodeEventSource } from 'eventsource-encoder'
+export { type EventSourceMessage, EventSourceParserStream } from 'eventsource-parser/stream'
