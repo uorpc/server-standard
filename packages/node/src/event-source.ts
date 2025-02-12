@@ -4,7 +4,7 @@ import { encodeEventSource, EventSourceDecoderStream, EventSourceErrorEvent, Eve
 
 export function toEventSourceAsyncGenerator(
   stream: Readable,
-): AsyncGenerator<JsonValue | undefined, JsonValue | undefined, undefined> {
+): AsyncGenerator<JsonValue | void, JsonValue | void, void> {
   const eventStream = Readable.toWeb(stream)
     .pipeThrough(new TextDecoderStream())
     .pipeThrough(new EventSourceDecoderStream())
@@ -53,7 +53,7 @@ export function toEventSourceAsyncGenerator(
 }
 
 export function toEventSourceReadableStream(
-  iterator: AsyncIterator<JsonValue | undefined, JsonValue | undefined, undefined>,
+  iterator: AsyncIterator<JsonValue | void, JsonValue | void, void>,
 ): Readable {
   const stream = new ReadableStream<string>({
     async pull(controller) {
@@ -75,15 +75,12 @@ export function toEventSourceReadableStream(
         }))
       }
       catch (err) {
-        if (!(err instanceof EventSourceErrorEvent)) {
-          controller.error(err)
-          return
-        }
-
         controller.enqueue(encodeEventSource({
           event: 'error',
-          data: JSON.stringify(err.data),
+          data: err instanceof EventSourceErrorEvent ? JSON.stringify(err.data) : undefined,
+          retry: err instanceof EventSourceRetryErrorEvent ? err.retry : undefined,
         }))
+
         controller.close()
       }
     },

@@ -111,4 +111,49 @@ describe('sendStandardResponse', () => {
 
     expect(res.text).toEqual('foo')
   })
+
+  it('works with async generator', async () => {
+    async function* gen() {
+      yield 'foo'
+      yield 'bar'
+      return 'baz'
+    }
+
+    const generator = gen()
+
+    let endSpy: any
+
+    const res = await request(async (req: IncomingMessage, res: ServerResponse) => {
+      endSpy = vi.spyOn(res, 'end')
+
+      await sendStandardResponse(res, {
+        status: 207,
+        headers: {
+          'x-custom-header': 'custom-value',
+        },
+        body: generator,
+      })
+    }).get('/')
+
+    expect(toNodeHttpBodySpy).toBeCalledTimes(1)
+    expect(toNodeHttpBodySpy).toBeCalledWith(generator, {
+      'connection': 'keep-alive',
+      'cache-control': 'no-cache',
+      'content-type': 'text/event-stream',
+      'x-custom-header': 'custom-value',
+    })
+
+    expect(endSpy).toBeCalledTimes(1)
+    expect(endSpy).toBeCalledWith()
+
+    expect(res.status).toBe(207)
+    expect(res.headers).toMatchObject({
+      'connection': 'keep-alive',
+      'cache-control': 'no-cache',
+      'content-type': 'text/event-stream',
+      'x-custom-header': 'custom-value',
+    })
+
+    expect(res.text).toEqual('event: message\ndata: "foo"\n\nevent: message\ndata: "bar"\n\nevent: done\ndata: "baz"\n\n')
+  })
 })

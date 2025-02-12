@@ -1,3 +1,4 @@
+import { Readable } from 'node:stream'
 import { EventSourceErrorEvent, EventSourceRetryErrorEvent, EventSourceUnknownEvent, isAsyncIteratorObject } from '@orpc/server-standard'
 import { toEventSourceAsyncGenerator, toEventSourceReadableStream } from './event-source'
 
@@ -11,7 +12,7 @@ describe('toEventSourceAsyncGenerator', () => {
       },
     }).pipeThrough(new TextEncoderStream())
 
-    const generator = toEventSourceAsyncGenerator(stream)
+    const generator = toEventSourceAsyncGenerator(Readable.fromWeb(stream))
     expect(generator).toSatisfy(isAsyncIteratorObject)
 
     expect(await generator.next()).toEqual({ done: false, value: 123 })
@@ -27,7 +28,7 @@ describe('toEventSourceAsyncGenerator', () => {
       },
     }).pipeThrough(new TextEncoderStream())
 
-    const generator = toEventSourceAsyncGenerator(stream)
+    const generator = toEventSourceAsyncGenerator(Readable.fromWeb(stream))
     expect(generator).toSatisfy(isAsyncIteratorObject)
 
     expect(await generator.next()).toEqual({ done: false, value: 123 })
@@ -44,7 +45,7 @@ describe('toEventSourceAsyncGenerator', () => {
       },
     }).pipeThrough(new TextEncoderStream())
 
-    const generator = toEventSourceAsyncGenerator(stream)
+    const generator = toEventSourceAsyncGenerator(Readable.fromWeb(stream))
     expect(generator).toSatisfy(isAsyncIteratorObject)
 
     expect(await generator.next()).toEqual({ done: false, value: 123 })
@@ -65,7 +66,7 @@ describe('toEventSourceAsyncGenerator', () => {
       },
     }).pipeThrough(new TextEncoderStream())
 
-    const generator = toEventSourceAsyncGenerator(stream)
+    const generator = toEventSourceAsyncGenerator(Readable.fromWeb(stream))
     expect(generator).toSatisfy(isAsyncIteratorObject)
 
     expect(await generator.next()).toEqual({ done: false, value: 123 })
@@ -86,7 +87,7 @@ describe('toEventSourceAsyncGenerator', () => {
       },
     }).pipeThrough(new TextEncoderStream())
 
-    const generator = toEventSourceAsyncGenerator(stream)
+    const generator = toEventSourceAsyncGenerator(Readable.fromWeb(stream))
     expect(generator).toSatisfy(isAsyncIteratorObject)
 
     expect(generator.next()).rejects.toSatisfy((err: any) => {
@@ -107,7 +108,7 @@ describe('toEventSourceReadableStream', () => {
       return { value: true }
     }
 
-    const reader = toEventSourceReadableStream(gen())
+    const reader = Readable.toWeb(toEventSourceReadableStream(gen()))
       .pipeThrough(new TextDecoderStream())
       .getReader()
 
@@ -125,7 +126,7 @@ describe('toEventSourceReadableStream', () => {
       throw new Error('hello')
     }
 
-    const reader = toEventSourceReadableStream(gen())
+    const reader = Readable.toWeb(toEventSourceReadableStream(gen()))
       .pipeThrough(new TextDecoderStream())
       .getReader()
 
@@ -142,7 +143,7 @@ describe('toEventSourceReadableStream', () => {
       throw new EventSourceRetryErrorEvent(789, { data: 456 })
     }
 
-    const reader = toEventSourceReadableStream(gen())
+    const reader = Readable.toWeb(toEventSourceReadableStream(gen()))
       .pipeThrough(new TextDecoderStream())
       .getReader()
 
@@ -171,11 +172,12 @@ describe('toEventSourceReadableStream', () => {
       }
     }
 
-    const stream = toEventSourceReadableStream(gen())
+    const original = toEventSourceReadableStream(gen())
+    const stream = Readable.toWeb(original)
 
     const reader = stream.getReader()
     await reader.read()
-    await reader.cancel()
+    await original.destroy() // use this instead of reader.cancel can improve node.js compatibility
 
     await vi.waitFor(() => {
       expect(error).toEqual(undefined)
@@ -202,12 +204,13 @@ describe('toEventSourceReadableStream', () => {
       }
     }
 
-    const stream = toEventSourceReadableStream(gen())
+    const original = toEventSourceReadableStream(gen())
+    const stream = Readable.toWeb(original)
 
     const reason = new Error('reason')
     const reader = stream.getReader()
     await reader.read()
-    await reader.cancel(reason)
+    await original.destroy(reason) // use this instead of reader.cancel can improve node.js compatibility
 
     await vi.waitFor(() => {
       expect(error).toBe(reason)

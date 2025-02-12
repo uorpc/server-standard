@@ -2,6 +2,7 @@ import type { StandardBody } from '@orpc/server-standard'
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import { Buffer } from 'node:buffer'
 import { Readable } from 'node:stream'
+import { isAsyncIteratorObject } from '@orpc/server-standard'
 import request from 'supertest'
 import { toNodeHttpBody, toStandardBody } from './body'
 
@@ -49,6 +50,23 @@ describe('toStandardBody', () => {
     }).post('/').type('application/json').send('')
 
     expect(standardBody).toEqual(undefined)
+  })
+
+  it('event-source', async () => {
+    let standardBody: any
+
+    await request(async (req: IncomingMessage, res: ServerResponse) => {
+      standardBody = await toStandardBody(req)
+      res.end()
+    })
+      .delete('/')
+      .type('text/event-stream')
+      .send('event: message\ndata: 123\n\nevent: done\ndata: 456\n\n')
+
+    expect(standardBody).toSatisfy(isAsyncIteratorObject)
+
+    expect(await standardBody.next()).toEqual({ done: false, value: 123 })
+    expect(await standardBody.next()).toEqual({ done: true, value: 456 })
   })
 
   it('text', async () => {
@@ -238,5 +256,28 @@ describe('toNodeHttpBody', () => {
 
     expect(resBlob.type).toBe('application/pdf')
     expect(await resBlob.text()).toBe('foo')
+  })
+
+  it('async generator', async () => {
+    async function* gen() {
+      yield 123
+      return 456
+    }
+
+    const headers = { ...baseHeaders }
+    const body = toNodeHttpBody(gen(), headers)
+
+    expect(body).toBeInstanceOf(Readable)
+    expect(headers).toEqual({
+      'content-type': 'text/event-stream',
+      'cache-control': 'no-cache',
+      'connection': 'keep-alive',
+      'x-custom-header': 'custom-value',
+    })
+
+    const reader = Readable.toWeb((body as Readable)).pipeThrough(new TextDecoderStream()).getReader()
+
+    expect(await reader.read()).toEqual({ done: false, value: 'event: message\ndata: 123\n\n' })
+    expect(await reader.read()).toEqual({ done: false, value: 'event: done\ndata: 456\n\n' })
   })
 })

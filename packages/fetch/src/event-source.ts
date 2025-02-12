@@ -3,7 +3,7 @@ import { encodeEventSource, EventSourceDecoderStream, EventSourceErrorEvent, Eve
 
 export function toEventSourceAsyncGenerator(
   stream: ReadableStream<Uint8Array>,
-): AsyncGenerator<JsonValue | undefined, JsonValue | undefined, undefined> {
+): AsyncGenerator<JsonValue | void, JsonValue | void, void> {
   const eventStream = stream
     .pipeThrough(new TextDecoderStream())
     .pipeThrough(new EventSourceDecoderStream())
